@@ -12,7 +12,7 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal, List
 
 # Example schemas (replace with your own):
 
@@ -38,11 +38,33 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# CoPilot app schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Session(BaseModel):
+    """
+    CoPilot session representing a workspace for a single flow.
+    Collection name: "session"
+    """
+    user_id: Optional[str] = Field(None, description="User identifier if available")
+    mode: Literal["resume", "interview", "jobs"] = Field(..., description="Workflow mode")
+    title: Optional[str] = Field(None, description="Optional session title")
+    status: Literal["active", "archived"] = Field("active")
+
+class Message(BaseModel):
+    """
+    Chat messages associated with a session.
+    Collection name: "message"
+    """
+    session_id: str = Field(..., description="Related session id")
+    role: Literal["user", "assistant", "system"] = Field(...)
+    content: str = Field(..., description="Message text content")
+    meta: Optional[dict] = Field(default=None, description="Optional metadata like tokens, suggestions, etc.")
+
+class Preview(BaseModel):
+    """
+    Generated preview snapshot for a session.
+    Collection name: "preview"
+    """
+    session_id: str
+    mode: Literal["resume", "interview", "jobs"]
+    content: dict = Field(default_factory=dict)
